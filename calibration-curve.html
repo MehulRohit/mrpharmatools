@@ -28,14 +28,14 @@ button { margin-top: 12px; padding: 7px 14px; background: #1f3c88; color: #fff; 
 </head>
 <body>
 <h2>Calibration Curve Calculator</h2>
-<p>Enter concentration and absorbance values. Optional additional absorbance series can be added.</p>
+<p>Enter concentration and absorbance values. Optional additional absorbance series can be added. You can edit the absorbance headers to reflect your measurement wavelength.</p>
 <div class="container">
   <div class="left-panel">
     <table id="dataTable">
       <thead>
         <tr>
           <th>Concentration (µg/mL)</th>
-          <th>Absorbance (nm)</th>
+          <th><input value="Absorbance (nm)" style="width: 100%;"></th>
         </tr>
       </thead>
       <tbody>
@@ -63,21 +63,20 @@ function addRow() {
   let tbody = document.querySelector("#dataTable tbody");
   let row = tbody.insertRow();
   let cols = document.querySelector("#dataTable thead tr").children.length;
-  for (let i = 0; i < cols; i++) { row.insertCell().innerHTML = "<input>"; }
+  for (let i = 0; i < cols; i++) row.insertCell().innerHTML = "<input>";
 }
 
-// Add new absorbance column
+// Add new absorbance column with editable header
 function addColumn() {
   let thead = document.querySelector("#dataTable thead tr");
-  let colNum = thead.children.length;
   let newTh = document.createElement("th");
-  newTh.innerText = `Absorbance ${colNum-1} (nm)`;
+  newTh.innerHTML = `<input value="Absorbance (nm)" style="width: 100%;">`;
   thead.appendChild(newTh);
   let rows = document.querySelectorAll("#dataTable tbody tr");
-  rows.forEach(r => { r.insertCell().innerHTML = "<input>"; });
+  rows.forEach(r => r.insertCell().innerHTML = "<input>");
 }
 
-// Linear regression
+// Linear regression function
 function linearRegression(x, y) {
   let n = x.length;
   let sumX = x.reduce((a,b)=>a+b,0), sumY = y.reduce((a,b)=>a+b,0);
@@ -85,7 +84,6 @@ function linearRegression(x, y) {
   let sumX2 = x.map(v=>v*v).reduce((a,b)=>a+b,0);
   let m = (n*sumXY - sumX*sumY)/(n*sumX2 - sumX*sumX);
   let c = (sumY - m*sumX)/n;
-  // R²
   let yMean = sumY/n;
   let ssTot = y.map(v=>Math.pow(v - yMean,2)).reduce((a,b)=>a+b,0);
   let ssRes = y.map((v,i)=>Math.pow(v - (m*x[i]+c),2)).reduce((a,b)=>a+b,0);
@@ -93,7 +91,7 @@ function linearRegression(x, y) {
   return {m,c,r2};
 }
 
-// Calculate
+// Calculate and plot
 function calculate() {
   let rows = document.querySelectorAll("#dataTable tbody tr");
   if (rows.length<2) { alert("At least 2 points required."); return; }
@@ -107,10 +105,12 @@ function calculate() {
   });
   let traces = [];
   let resultText = "";
+  let headerInputs = document.querySelectorAll("#dataTable thead tr th input");
   series.forEach((y,i)=>{
+    let seriesName = headerInputs[i+1] ? headerInputs[i+1].value : `Absorbance ${i+1}`;
     let reg = linearRegression(x,y);
-    resultText += `<b>Series ${i+1}:</b> y = ${reg.m.toFixed(3)}x + ${reg.c.toFixed(3)}, R² = ${reg.r2.toFixed(4)}<br>`;
-    traces.push({x:x,y:y,mode:"lines+markers",name:`Absorbance ${i+1}`});
+    resultText += `<b>${seriesName}:</b> y = ${reg.m.toFixed(3)}x + ${reg.c.toFixed(3)}, R² = ${reg.r2.toFixed(4)}<br>`;
+    traces.push({x:x,y:y,mode:"lines+markers",name:seriesName});
     let regLine = x.map(v=>reg.m*v + reg.c);
     traces.push({x:x,y:regLine,mode:"lines",line:{dash:'dot'},name:`Fit ${i+1}`});
   });
@@ -129,7 +129,10 @@ function exportExcel() {
   let cols = document.querySelector("#dataTable thead tr").children.length;
   let csv = [];
   let headers = [];
-  document.querySelectorAll("#dataTable thead tr th").forEach(th=>headers.push(th.innerText));
+  document.querySelectorAll("#dataTable thead tr th").forEach(th=>{
+    let input = th.querySelector("input");
+    headers.push(input ? input.value : th.innerText);
+  });
   csv.push(headers.join(","));
   rows.forEach(r=>{
     let inputs = r.querySelectorAll("input");
