@@ -2,16 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MR Pharma Tools – f1 & f2 Similarity Calculator</title>
+<title>MR Pharma Tools – f1 & f2 Calculator</title>
 
-<!-- Plotly -->
+<!-- SheetJS library for Excel export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<!-- Plotly for graph -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <style>
 body {
   font-family: "Times New Roman", Times, serif;
   background: #ffffff;
-  color: #000;
+  color: #000000;
   max-width: 1000px;
   margin: auto;
   padding: 25px;
@@ -126,7 +128,6 @@ button.secondary {
 <button onclick="exportExcel()">Download Excel</button>
 
 <div id="resultBox"></div>
-
 <div id="plot"></div>
 
 <script>
@@ -191,9 +192,48 @@ function calculate() {
     yaxis: { title: "% Release" }
   });
 }
+
+// Excel Export
+function exportExcel() {
+  let rows = document.querySelectorAll("#dataTable tbody tr");
+  let data = [["Time", "Reference", "Test"]];
+
+  rows.forEach(row => {
+    let cells = row.querySelectorAll("input");
+    if (cells[0].value && cells[1].value && cells[2].value) {
+      data.push([Number(cells[0].value), Number(cells[1].value), Number(cells[2].value)]);
+    }
+  });
+
+  if (data.length < 4) {
+    alert("Minimum 3 data points required.");
+    return;
+  }
+
+  let n = data.length - 1, sumDiff = 0, sumRef = 0, sumSq = 0;
+  let R = [], T = [];
+  for (let i = 1; i < data.length; i++) {
+    R.push(data[i][1]);
+    T.push(data[i][2]);
+    sumDiff += Math.abs(data[i][1] - data[i][2]);
+    sumRef += data[i][1];
+    sumSq += Math.pow(data[i][1] - data[i][2], 2);
+  }
+  let f1 = (sumDiff / sumRef) * 100;
+  let f2 = 50 * Math.log10(Math.pow(1 + sumSq / n, -0.5) * 100);
+  let interpretation = (f1 <= 15 && f2 >= 50) ? "Profiles are SIMILAR" : "Profiles are NOT SIMILAR";
+
+  data.push([]);
+  data.push(["f1", f1.toFixed(2)]);
+  data.push(["f2", f2.toFixed(2)]);
+  data.push(["Conclusion", interpretation]);
+
+  let ws = XLSX.utils.aoa_to_sheet(data);
+  let wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "f1_f2 Results");
+  XLSX.writeFile(wb, "MR_Pharma_Tools_f1_f2.xlsx");
+}
 </script>
-<!-- SheetJS Library for Excel Export -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 </body>
 </html>
