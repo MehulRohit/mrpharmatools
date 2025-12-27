@@ -123,6 +123,7 @@ button.secondary {
 
 <button onclick="addRow()" class="secondary">+ Add Row</button>
 <button onclick="calculate()">Calculate</button>
+<button onclick="exportExcel()">Download Excel</button>
 
 <div id="resultBox"></div>
 
@@ -191,6 +192,8 @@ function calculate() {
   });
 }
 </script>
+<!-- SheetJS Library for Excel Export -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
 </body>
 </html>
