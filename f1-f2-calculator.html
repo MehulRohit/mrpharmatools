@@ -2,33 +2,100 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>F1–F2 Similarity Calculator | MR Pharma Tools</title>
+<title>Calibration Curve | MR Pharma Tools</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body { font-family:"Times New Roman", Times, serif; margin:0; background:#fff; }
-header { background:#1f3c88; color:#fff; padding:18px; text-align:center; }
-nav { background:#102654; text-align:center; padding:10px; }
-nav a { color:#fff; margin:0 10px; text-decoration:none; padding:8px 14px; border-radius:4px; }
+
+header {
+  background:#1f3c88;
+  color:#fff;
+  padding:18px;
+  text-align:center;
+}
+
+nav {
+  background:#102654;
+  padding:10px;
+  text-align:center;
+}
+
+nav a {
+  color:#fff;
+  margin:0 10px;
+  text-decoration:none;
+  padding:8px 14px;
+  border-radius:4px;
+}
+
 nav a:hover { background:#1f3c88; }
 
-main { max-width:1100px; margin:30px auto; padding:0 20px; }
-.section { background:#f7f9fd; padding:25px; border-radius:6px; margin-bottom:25px; box-shadow:0 4px 10px rgba(0,0,0,0.06); }
+main {
+  max-width:1100px;
+  margin:30px auto;
+  padding:20px;
+}
 
-table { width:100%; border-collapse:collapse; }
-th, td { border:1px solid #ccc; padding:8px; text-align:center; }
-th { background:#e8edfa; }
+.section {
+  background:#f7f9fd;
+  padding:25px;
+  border-radius:6px;
+  margin-bottom:25px;
+  box-shadow:0 4px 10px rgba(0,0,0,0.06);
+}
 
-button { background:#1f3c88; color:#fff; border:none; padding:10px 18px; cursor:pointer; border-radius:4px; }
-button:hover { background:#162f66; }
+.flex {
+  display:flex;
+  gap:30px;
+}
 
-.flex { display:flex; gap:30px; }
 .flex > div { flex:1; }
 
-.output-box { border-left:6px solid #1f3c88; background:#fff; padding:15px; margin-top:20px; }
+table {
+  width:100%;
+  border-collapse:collapse;
+}
 
-footer { background:#f0f3fa; text-align:center; padding:12px; color:#1f3c88; }
+th, td {
+  border:1px solid #ccc;
+  padding:8px;
+  text-align:center;
+}
+
+th { background:#e8edfa; }
+
+input {
+  width:100%;
+  padding:6px;
+  font-family:"Times New Roman", Times, serif;
+}
+
+button {
+  background:#1f3c88;
+  color:#fff;
+  border:none;
+  padding:10px 18px;
+  cursor:pointer;
+  border-radius:4px;
+}
+
+button:hover { background:#162f66; }
+
+.output-box {
+  margin-top:20px;
+  padding:15px;
+  background:#fff;
+  border-left:6px solid #1f3c88;
+}
+
+footer {
+  background:#f0f3fa;
+  text-align:center;
+  padding:12px;
+  color:#1f3c88;
+}
 </style>
 </head>
 
@@ -36,7 +103,7 @@ footer { background:#f0f3fa; text-align:center; padding:12px; color:#1f3c88; }
 
 <header>
 <h1>MR Pharma Tools</h1>
-<p>F1–F2 Similarity Calculator</p>
+<p>Calibration Curve Calculator</p>
 </header>
 
 <nav>
@@ -49,58 +116,108 @@ footer { background:#f0f3fa; text-align:center; padding:12px; color:#1f3c88; }
 <main>
 
 <div class="section flex">
+
 <div>
 <h2>Input Data</h2>
-<table>
-<tr><th>Time</th><th>Reference (%)</th><th>Test (%)</th></tr>
-<tr><td>1</td><td><input></td><td><input></td></tr>
-<tr><td>2</td><td><input></td><td><input></td></tr>
-<tr><td>3</td><td><input></td><td><input></td></tr>
-<tr><td>4</td><td><input></td><td><input></td></tr>
-<tr><td>5</td><td><input></td><td><input></td></tr>
+<table id="dataTable">
+<tr>
+<th>Concentration (µg/mL)</th>
+<th>Absorbance</th>
+</tr>
+<tr><td><input></td><td><input></td></tr>
+<tr><td><input></td><td><input></td></tr>
+<tr><td><input></td><td><input></td></tr>
+<tr><td><input></td><td><input></td></tr>
+<tr><td><input></td><td><input></td></tr>
 </table>
-<button onclick="calculate()">Calculate</button>
+
+<br>
+<button onclick="generateCurve()">Generate Calibration Curve</button>
+
+<div class="output-box" id="equationBox"></div>
 </div>
 
 <div>
-<canvas id="chart"></canvas>
-</div>
+<canvas id="calibrationChart"></canvas>
 </div>
 
-<div class="output-box" id="result"></div>
+</div>
 
 </main>
 
 <footer>© 2025 Mehul Rohit</footer>
 
 <script>
-function calculate(){
-let rows=document.querySelectorAll("table tr");
-let ref=[], test=[];
-for(let i=1;i<rows.length;i++){
-let r=rows[i].cells[1].children[0].value;
-let t=rows[i].cells[2].children[0].value;
-if(r && t){ ref.push(+r); test.push(+t); }
-}
-let n=ref.length;
-let f1=0,f2num=0,f2den=0;
-for(let i=0;i<n;i++){
-f1+=Math.abs(ref[i]-test[i]);
-f2num+=Math.pow(ref[i]-test[i],2);
-f2den+=Math.pow(ref[i],2);
-}
-f1=(f1/ref.reduce((a,b)=>a+b))*100;
-let f2=50*Math.log10((1/Math.sqrt(f2num/n))*100);
+let chartInstance = null;
 
-document.getElementById("result").innerHTML=
-`<b>F1:</b> ${f1.toFixed(2)}<br><b>F2:</b> ${f2.toFixed(2)}`;
+function generateCurve() {
+  let rows = document.querySelectorAll("#dataTable tr");
+  let x = [], y = [];
 
-new Chart(chart,{type:'line',
-data:{labels:ref.map((_,i)=>i+1),
-datasets:[
-{label:'Reference',data:ref},
-{label:'Test',data:test}
-]}});
+  for (let i = 1; i < rows.length; i++) {
+    let xv = parseFloat(rows[i].cells[0].children[0].value);
+    let yv = parseFloat(rows[i].cells[1].children[0].value);
+    if (!isNaN(xv) && !isNaN(yv)) {
+      x.push(xv);
+      y.push(yv);
+    }
+  }
+
+  if (x.length < 2) return;
+
+  // Regression
+  let n = x.length;
+  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+  for (let i = 0; i < n; i++) {
+    sumX += x[i];
+    sumY += y[i];
+    sumXY += x[i] * y[i];
+    sumX2 += x[i] * x[i];
+  }
+
+  let slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
+  let intercept = (sumY - slope * sumX) / n;
+
+  let yPred = x.map(v => slope * v + intercept);
+
+  // R²
+  let ssTot = 0, ssRes = 0;
+  let meanY = sumY / n;
+  for (let i = 0; i < n; i++) {
+    ssTot += Math.pow(y[i] - meanY, 2);
+    ssRes += Math.pow(y[i] - yPred[i], 2);
+  }
+  let r2 = 1 - (ssRes / ssTot);
+
+  document.getElementById("equationBox").innerHTML =
+    `<b>Regression Equation:</b> y = ${slope.toFixed(4)}x + ${intercept.toFixed(4)}<br>
+     <b>R²:</b> ${r2.toFixed(4)}`;
+
+  if (chartInstance) chartInstance.destroy();
+
+  chartInstance = new Chart(document.getElementById("calibrationChart"), {
+    type: 'scatter',
+    data: {
+      datasets: [
+        {
+          label: 'Observed',
+          data: x.map((v, i) => ({ x: v, y: y[i] }))
+        },
+        {
+          label: 'Regression Line',
+          type: 'line',
+          data: x.map((v, i) => ({ x: v, y: yPred[i] })),
+          fill: false
+        }
+      ]
+    },
+    options: {
+      scales: {
+        x: { title: { display: true, text: 'Concentration (µg/mL)' } },
+        y: { title: { display: true, text: 'Absorbance' } }
+      }
+    }
+  });
 }
 </script>
 
