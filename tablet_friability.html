@@ -1,62 +1,65 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>MR Pharma Tools – Tablet % Friability</title>
+<title>Tablet % Friability | MR Pharma Tools</title>
 <style>
-body { font-family:"Times New Roman", Times, serif; background:#fff; margin:0; padding:0; }
-header { background:#1f3c88; color:white; padding:15px 20px; display:flex; flex-direction:column; align-items:center; }
-header h1{ margin:0; font-size:2em; } header p{ margin:5px 0 0; font-size:0.95em; color:#eee; }
-nav{ display:flex; justify-content:center; background:#16306a; flex-wrap:wrap; }
-nav a{ color:white; padding:12px 20px; text-decoration:none; font-family:"Times New Roman", Times, serif; transition:background 0.2s; }
-nav a:hover{ background:#1f3c88; }
-main{ padding:30px 20px; max-width:600px; margin:auto; }
-footer{ background:#f5f7fb; color:#1f3c88; text-align:center; padding:12px 0; font-size:0.9em; border-top:1px solid #ddd; }
-input[type=number]{ width:100px; padding:4px; margin:5px; }
-button{ padding:8px 15px; background:#1f3c88; color:white; border:none; border-radius:4px; cursor:pointer; }
-button:hover{ background:#16306a; }
+body{font-family:"Times New Roman";margin:0}
+header,nav,footer{text-align:center}
+header{background:#1f3c88;color:#fff;padding:18px}
+nav{background:#102654;padding:10px}
+nav a{color:#fff;margin:0 10px;text-decoration:none}
+nav a:hover{background:#1f3c88;padding:6px}
+main{max-width:800px;margin:30px auto;padding:20px}
+.section{background:#f7f9fd;padding:25px;border-radius:6px}
+button{background:#1f3c88;color:#fff;border:none;padding:10px 18px}
+button:hover{background:#162f66}
+footer{background:#f0f3fa;padding:12px;color:#1f3c88}
 </style>
 </head>
+
 <body>
 
 <header>
 <h1>MR Pharma Tools</h1>
-<p>Pharmaceutical Calculators for Scientists and Students</p>
+<p>Tablet % Friability Calculator</p>
 </header>
 
 <nav>
 <a href="index.html">Home</a>
 <a href="calibration-curve.html">Calibration Curve</a>
 <a href="tablet_friability.html">Tablet % Friability</a>
-<a href="f1-f2-calculator.html">F1-F2 Similarity</a>
+<a href="f1-f2-calculator.html">F1–F2 Similarity</a>
 </nav>
 
 <main>
-<h2>Tablet % Friability Calculator</h2>
-<p><strong>Note:</strong> Dust should be carefully removed from the tablets prior to testing or measuring Initial weight and Final Weight.</p>
 
-<label>Initial Weight (Wi, g): </label><input type="number" id="wi" step="any"><br>
-<label>Final Weight (Wf, g): </label><input type="number" id="wf" step="any"><br>
-<label>Number of Tablets: </label><input type="number" id="n"><br>
-<button onclick="calculateFriability()">Calculate % Friability</button>
+<div class="section">
+<p><b>Note:</b> Dust should be carefully removed from tablets prior to weighing.</p>
 
-<p id="result" style="margin-top:15px; font-weight:bold;"></p>
+<label>Initial Weight (Wi) g:</label><br>
+<input id="wi"><br><br>
 
-<script>
-function calculateFriability(){
-    const Wi = parseFloat(document.getElementById('wi').value);
-    const Wf = parseFloat(document.getElementById('wf').value);
-    const n = parseInt(document.getElementById('n').value);
-    if(isNaN(Wi) || isNaN(Wf) || isNaN(n)){ alert("Please enter all values"); return; }
-    const friability = ((Wi-Wf)/Wi)*100;
-    document.getElementById('result').innerText = `Friability: ${friability.toFixed(2)}%`;
-}
-</script>
+<label>Final Weight (Wf) g:</label><br>
+<input id="wf"><br><br>
+
+<button onclick="calc()">Calculate</button>
+
+<p id="out"></p>
+</div>
+
 </main>
 
-<footer>
-&copy; 2025 Mehul Rohit
-</footer>
+<footer>© 2025 Mehul Rohit</footer>
+
+<script>
+function calc(){
+let wi=+wi.value;
+let wf=+wf.value;
+let f=((wi-wf)/wi)*100;
+out.innerHTML=`<b>% Friability:</b> ${f.toFixed(2)} %`;
+}
+</script>
 
 </body>
 </html>
