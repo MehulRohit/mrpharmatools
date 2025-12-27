@@ -3,124 +3,60 @@
 <head>
 <meta charset="UTF-8">
 <title>MR Pharma Tools – Tablet % Friability</title>
-<script src="https://cdn.plot.ly/plotly-latest.min.js" defer></script>
 <style>
-body {
-  font-family: "Times New Roman", Times, serif;
-  background: #ffffff;
-  max-width: 1200px;
-  margin: auto;
-  padding: 20px;
-}
-h2 { color: #1f3c88; margin-bottom: 5px; }
-p.note { font-size: 14px; color: #555555; background: #f5f7fb; padding: 8px; border-left: 5px solid #1f3c88; }
-.container { display: flex; gap: 25px; flex-wrap: wrap; }
-.left-panel { width: 50%; min-width: 320px; }
-.right-panel { width: 50%; min-width: 320px; border-left: 2px solid #f0f0f0; padding-left: 20px; }
-input { width: 80%; margin-bottom: 10px; font-family: "Times New Roman", Times, serif; padding: 5px; }
-button { margin-top: 10px; padding: 7px 14px; background: #1f3c88; color: #fff; border: none; cursor: pointer; font-family: "Times New Roman", Times, serif; }
-#resultBox { margin-top: 15px; padding: 12px; display: none; background: #f5f7fb; border-left: 6px solid #1f3c88; }
-#plot { height: 420px; margin-top: 15px; }
-label { display:block; margin-top: 10px; font-weight:bold; }
+body { font-family:"Times New Roman", Times, serif; background:#fff; margin:0; padding:0; }
+header { background:#1f3c88; color:white; padding:15px 20px; display:flex; flex-direction:column; align-items:center; }
+header h1{ margin:0; font-size:2em; } header p{ margin:5px 0 0; font-size:0.95em; color:#eee; }
+nav{ display:flex; justify-content:center; background:#16306a; flex-wrap:wrap; }
+nav a{ color:white; padding:12px 20px; text-decoration:none; font-family:"Times New Roman", Times, serif; transition:background 0.2s; }
+nav a:hover{ background:#1f3c88; }
+main{ padding:30px 20px; max-width:600px; margin:auto; }
+footer{ background:#f5f7fb; color:#1f3c88; text-align:center; padding:12px 0; font-size:0.9em; border-top:1px solid #ddd; }
+input[type=number]{ width:100px; padding:4px; margin:5px; }
+button{ padding:8px 15px; background:#1f3c88; color:white; border:none; border-radius:4px; cursor:pointer; }
+button:hover{ background:#16306a; }
 </style>
 </head>
 <body>
 
-<h2>Tablet % Friability Calculator</h2>
-<p class="note">Note: Dust should be carefully removed from the tablets prior to testing or measuring Initial weight and Final Weight.</p>
+<header>
+<h1>MR Pharma Tools</h1>
+<p>Pharmaceutical Calculators for Scientists and Students</p>
+</header>
 
-<div class="container">
-  <div class="left-panel">
-    <label for="wi">Initial Weight of Tablets (Wi, g)</label>
-    <input type="number" id="wi" step="0.001" value="6.5">
-    
-    <label for="wf">Final Weight of Tablets (Wf, g)</label>
-    <input type="number" id="wf" step="0.001" value="6.45">
-    
-    <label for="tabWeight">Individual Tablet Weight (mg)</label>
-    <input type="number" id="tabWeight" step="1" value="500">
-    
-    <button onclick="calculateFriability()">Calculate</button>
-    <button onclick="exportExcel()">Download Excel</button>
-    
-    <div id="resultBox"></div>
-  </div>
-  
-  <div class="right-panel">
-    <div id="plot"></div>
-  </div>
-</div>
+<nav>
+<a href="index.html">Home</a>
+<a href="calibration-curve.html">Calibration Curve</a>
+<a href="tablet_friability.html">Tablet % Friability</a>
+<a href="f1-f2-calculator.html">F1-F2 Similarity</a>
+</nav>
+
+<main>
+<h2>Tablet % Friability Calculator</h2>
+<p><strong>Note:</strong> Dust should be carefully removed from the tablets prior to testing or measuring Initial weight and Final Weight.</p>
+
+<label>Initial Weight (Wi, g): </label><input type="number" id="wi" step="any"><br>
+<label>Final Weight (Wf, g): </label><input type="number" id="wf" step="any"><br>
+<label>Number of Tablets: </label><input type="number" id="n"><br>
+<button onclick="calculateFriability()">Calculate % Friability</button>
+
+<p id="result" style="margin-top:15px; font-weight:bold;"></p>
 
 <script>
-// Calculate sample size
-function sampleSize(indivWeight) {
-  if (indivWeight <= 650) {
-    return Math.ceil(6.5 / (indivWeight/1000)); // convert mg to g
-  } else {
-    return 10;
-  }
-}
-
-// Calculate friability
-function calculateFriability() {
-  let wi = parseFloat(document.getElementById("wi").value);
-  let wf = parseFloat(document.getElementById("wf").value);
-  let tabWeight = parseFloat(document.getElementById("tabWeight").value);
-  
-  if (isNaN(wi) || isNaN(wf) || isNaN(tabWeight)) {
-    alert("Please enter valid numeric values.");
-    return;
-  }
-  if (wi <= 0 || wf <= 0 || tabWeight <= 0) {
-    alert("Values must be greater than zero.");
-    return;
-  }
-  
-  let friability = ((wi - wf)/wi)*100;
-  let size = sampleSize(tabWeight);
-  let passFail = friability < 1 ? "Pass" : "Fail";
-  
-  document.getElementById("resultBox").style.display = "block";
-  document.getElementById("resultBox").innerHTML = `
-    <b>Sample Size:</b> ${size} tablets<br>
-    <b>% Friability:</b> ${friability.toFixed(2)}%<br>
-    <b>Result:</b> ${passFail}
-  `;
-  
-  // Plot Wi vs Wf
-  Plotly.newPlot("plot", [
-    {x:["Initial Weight (Wi)","Final Weight (Wf)"], y:[wi,wf], type:"bar", marker:{color:["#1f3c88","#ff6f61"]}}
-  ], {
-    title:"Tablet Weight Comparison",
-    yaxis:{title:"Weight (g)"}
-  });
-}
-
-// Export Excel
-function exportExcel() {
-  let wi = parseFloat(document.getElementById("wi").value);
-  let wf = parseFloat(document.getElementById("wf").value);
-  let tabWeight = parseFloat(document.getElementById("tabWeight").value);
-  let friability = ((wi - wf)/wi)*100;
-  let size = sampleSize(tabWeight);
-  let passFail = friability < 1 ? "Pass" : "Fail";
-  
-  let csv = [
-    ["Initial Weight (g)", wi],
-    ["Final Weight (g)", wf],
-    ["Individual Tablet Weight (mg)", tabWeight],
-    ["Sample Size (tablets)", size],
-    ["% Friability", friability.toFixed(2)],
-    ["Result", passFail]
-  ].map(r=>r.join(",")).join("\n");
-  
-  let blob = new Blob([csv],{type:"application/vnd.ms-excel"});
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download="Tablet_Friability.xls";
-  a.click();
+function calculateFriability(){
+    const Wi = parseFloat(document.getElementById('wi').value);
+    const Wf = parseFloat(document.getElementById('wf').value);
+    const n = parseInt(document.getElementById('n').value);
+    if(isNaN(Wi) || isNaN(Wf) || isNaN(n)){ alert("Please enter all values"); return; }
+    const friability = ((Wi-Wf)/Wi)*100;
+    document.getElementById('result').innerText = `Friability: ${friability.toFixed(2)}%`;
 }
 </script>
+</main>
+
+<footer>
+&copy; 2025 Mehul Rohit
+</footer>
 
 </body>
 </html>
