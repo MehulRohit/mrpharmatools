@@ -1,51 +1,158 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MR Pharma Tools – f1 & f2 Calculator</title>
+<title>MR Pharma Tools – f1 & f2 Similarity Calculator</title>
+
+<!-- Plotly -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
 <style>
 body {
   font-family: "Times New Roman", Times, serif;
-  max-width: 900px;
+  background: #ffffff;
+  color: #000;
+  max-width: 1000px;
   margin: auto;
-  padding: 20px;
+  padding: 25px;
 }
-textarea, button {
+
+h2 {
+  color: #1f3c88;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+th, td {
+  border: 1px solid #dddddd;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background: #f5f7fb;
+}
+
+input {
+  width: 90%;
   font-family: "Times New Roman", Times, serif;
 }
-textarea {
-  width: 100%;
-  height: 70px;
+
+button {
+  margin-top: 15px;
+  padding: 8px 16px;
+  font-family: "Times New Roman", Times, serif;
+  background: #1f3c88;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: #6c757d;
+}
+
+#resultBox {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 5px;
+  display: none;
+}
+
+.similar {
+  background: #e6f4ea;
+  border-left: 6px solid #2e7d32;
+}
+
+.notsimilar {
+  background: #fdecea;
+  border-left: 6px solid #b23b3b;
+}
+
+#plot {
+  margin-top: 30px;
 }
 </style>
-
-<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 </head>
 
 <body>
 
 <h2>Similarity (f₂) & Dissimilarity (f₁) Calculator</h2>
+<p>Comparison of dissolution profiles as per regulatory guidance.</p>
 
-<p><b>Reference Product (% Release)</b></p>
-<textarea id="ref">10,25,45,65,85</textarea>
+<table id="dataTable">
+<thead>
+<tr>
+  <th>Time</th>
+  <th>Reference (% Release)</th>
+  <th>Test (% Release)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><input value="5"></td>
+  <td><input value="10"></td>
+  <td><input value="12"></td>
+</tr>
+<tr>
+  <td><input value="10"></td>
+  <td><input value="25"></td>
+  <td><input value="27"></td>
+</tr>
+<tr>
+  <td><input value="15"></td>
+  <td><input value="45"></td>
+  <td><input value="43"></td>
+</tr>
+<tr>
+  <td><input value="30"></td>
+  <td><input value="65"></td>
+  <td><input value="63"></td>
+</tr>
+<tr>
+  <td><input value="45"></td>
+  <td><input value="85"></td>
+  <td><input value="83"></td>
+</tr>
+</tbody>
+</table>
 
-<p><b>Test Product (% Release)</b></p>
-<textarea id="test">12,27,43,63,83</textarea>
+<button onclick="addRow()" class="secondary">+ Add Row</button>
+<button onclick="calculate()">Calculate</button>
 
-<button onclick="calc()">Calculate</button>
-
-<p id="result"></p>
+<div id="resultBox"></div>
 
 <div id="plot"></div>
 
 <script>
-function calc() {
-  let R = document.getElementById("ref").value.split(",").map(Number);
-  let T = document.getElementById("test").value.split(",").map(Number);
+function addRow() {
+  let table = document.getElementById("dataTable").getElementsByTagName("tbody")[0];
+  let row = table.insertRow();
+  for (let i = 0; i < 3; i++) {
+    let cell = row.insertCell();
+    cell.innerHTML = "<input>";
+  }
+}
 
-  if (R.length !== T.length || R.length < 3) {
-    alert("Same number of points required (min 3)");
+function calculate() {
+  let rows = document.querySelectorAll("#dataTable tbody tr");
+  let time = [], R = [], T = [];
+
+  rows.forEach(row => {
+    let cells = row.querySelectorAll("input");
+    if (cells[0].value && cells[1].value && cells[2].value) {
+      time.push(Number(cells[0].value));
+      R.push(Number(cells[1].value));
+      T.push(Number(cells[2].value));
+    }
+  });
+
+  if (R.length < 3 || R.length !== T.length) {
+    alert("Minimum 3 matching data points required.");
     return;
   }
 
@@ -60,17 +167,26 @@ function calc() {
   let f1 = (sumDiff / sumRef) * 100;
   let f2 = 50 * Math.log10(Math.pow(1 + sumSq / n, -0.5) * 100);
 
-  document.getElementById("result").innerHTML =
-    "f₁ = " + f1.toFixed(2) +
-    "<br>f₂ = " + f2.toFixed(2) +
-    "<br><b>" + ((f1 <= 15 && f2 >= 50) ? "SIMILAR" : "NOT SIMILAR") + "</b>";
+  let resultBox = document.getElementById("resultBox");
+  let similar = (f1 <= 15 && f2 >= 50);
+
+  resultBox.className = similar ? "similar" : "notsimilar";
+  resultBox.style.display = "block";
+
+  resultBox.innerHTML = `
+    <b>Results</b><br>
+    f₁ = ${f1.toFixed(2)}<br>
+    f₂ = ${f2.toFixed(2)}<br><br>
+    <b>${similar ? "✔ Profiles are SIMILAR" : "✖ Profiles are NOT SIMILAR"}</b><br>
+    Criteria: f₁ ≤ 15 and f₂ ≥ 50
+  `;
 
   Plotly.newPlot("plot", [
-    { x: [...Array(n).keys()].map(i => i + 1), y: R, mode: "lines+markers", name: "Reference" },
-    { x: [...Array(n).keys()].map(i => i + 1), y: T, mode: "lines+markers", name: "Test" }
+    { x: time, y: R, mode: "lines+markers", name: "Reference" },
+    { x: time, y: T, mode: "lines+markers", name: "Test" }
   ], {
     title: "% Drug Release vs Time",
-    xaxis: { title: "Time Point" },
+    xaxis: { title: "Time" },
     yaxis: { title: "% Release" }
   });
 }
