@@ -14,9 +14,9 @@ body {
 }
 h2 { color: #1f3c88; margin-bottom: 5px; }
 p { margin-top: 0; }
-.container { display: flex; gap: 25px; }
-.left-panel { width: 50%; }
-.right-panel { width: 50%; border-left: 2px solid #f0f0f0; padding-left: 20px; }
+.container { display: flex; gap: 25px; flex-wrap: wrap; }
+.left-panel { width: 50%; min-width: 320px; }
+.right-panel { width: 50%; min-width: 320px; border-left: 2px solid #f0f0f0; padding-left: 20px; }
 table { width: 100%; border-collapse: collapse; margin-top: 15px; }
 th, td { border: 1px solid #dddddd; padding: 6px; text-align: center; }
 th { background: #f5f7fb; }
@@ -94,23 +94,24 @@ function linearRegression(x, y) {
 // Calculate and plot
 function calculate() {
   let rows = document.querySelectorAll("#dataTable tbody tr");
-  if (rows.length<2) { alert("At least 2 points required."); return; }
+  if (rows.length < 2) { alert("At least 2 points required."); return; }
   let cols = document.querySelector("#dataTable thead tr").children.length;
   let x = [], series = [];
-  for (let i=0;i<cols-1;i++) series.push([]);
-  rows.forEach(r=>{
+  for (let i = 0; i < cols - 1; i++) series.push([]);
+  rows.forEach(r => {
     let inputs = r.querySelectorAll("input");
     x.push(+inputs[0].value);
-    for (let j=1;j<cols;j++) series[j-1].push(+inputs[j].value);
+    for (let j = 1; j < cols; j++) series[j - 1].push(+inputs[j].value);
   });
+
   let traces = [];
   let resultText = "";
-  
+
+  // Get all <th> headers
+  let ths = document.querySelectorAll("#dataTable thead tr th");
   series.forEach((y, i) => {
-    // Get header input for this series
-    let thInput = document.querySelector(`#dataTable thead tr th:nth-child(${i+2}) input`);
-    let seriesName = thInput && thInput.value ? thInput.value : `Absorbance ${i+1}`;
-    
+    let input = ths[i + 1].querySelector("input");
+    let seriesName = input && input.value.trim() !== "" ? input.value : `Absorbance ${i+1}`;
     let reg = linearRegression(x, y);
     resultText += `<b>${seriesName}:</b> y = ${reg.m.toFixed(3)}x + ${reg.c.toFixed(3)}, R² = ${reg.r2.toFixed(4)}<br>`;
     
@@ -118,21 +119,20 @@ function calculate() {
     let regLine = x.map(v => reg.m * v + reg.c);
     traces.push({x: x, y: regLine, mode: "lines", line: {dash: 'dot'}, name: `Fit ${seriesName}`});
   });
-  
-  document.getElementById("resultBox").style.display="block";
+
+  document.getElementById("resultBox").style.display = "block";
   document.getElementById("resultBox").innerHTML = resultText;
-  
+
   Plotly.newPlot("plot", traces, {
-    title:"Calibration Curve",
-    xaxis:{title:"Concentration (µg/mL)"},
-    yaxis:{title:"Absorbance (nm)"}
+    title: "Calibration Curve",
+    xaxis: { title: "Concentration (µg/mL)" },
+    yaxis: { title: "Absorbance (nm)" }
   });
 }
 
 // Export Excel
 function exportExcel() {
   let rows = document.querySelectorAll("#dataTable tbody tr");
-  let cols = document.querySelector("#dataTable thead tr").children.length;
   let csv = [];
   let headers = [];
   document.querySelectorAll("#dataTable thead tr th").forEach(th=>{
@@ -143,7 +143,7 @@ function exportExcel() {
   rows.forEach(r=>{
     let inputs = r.querySelectorAll("input");
     let rowData = [];
-    inputs.forEach(input=>rowData.push(input.value));
+    inputs.forEach(input => rowData.push(input.value));
     csv.push(rowData.join(","));
   });
   let blob = new Blob([csv.join("\n")],{type:"application/vnd.ms-excel"});
