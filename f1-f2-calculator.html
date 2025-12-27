@@ -2,82 +2,107 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>MR Pharma Tools – F1-F2 Similarity</title>
+<title>F1–F2 Similarity Calculator | MR Pharma Tools</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <style>
-body { font-family:"Times New Roman", Times, serif; background:#fff; margin:0; padding:0; }
-header { background:#1f3c88; color:white; padding:15px 20px; display:flex; flex-direction:column; align-items:center; }
-header h1{ margin:0; font-size:2em; } header p{ margin:5px 0 0; font-size:0.95em; color:#eee; }
-nav{ display:flex; justify-content:center; background:#16306a; flex-wrap:wrap; }
-nav a{ color:white; padding:12px 20px; text-decoration:none; font-family:"Times New Roman", Times, serif; transition:background 0.2s; }
-nav a:hover{ background:#1f3c88; }
-main{ padding:30px 20px; max-width:700px; margin:auto; }
-footer{ background:#f5f7fb; color:#1f3c88; text-align:center; padding:12px 0; font-size:0.9em; border-top:1px solid #ddd; }
-input[type=number]{ width:80px; padding:4px; margin:2px; }
-button{ padding:8px 15px; background:#1f3c88; color:white; border:none; border-radius:4px; cursor:pointer; }
-button:hover{ background:#16306a; }
-table{ border-collapse:collapse; width:100%; margin-bottom:15px; }
-table, th, td{ border:1px solid #ddd; }
-th, td{ padding:5px; text-align:center; }
+body { font-family:"Times New Roman", Times, serif; margin:0; background:#fff; }
+header { background:#1f3c88; color:#fff; padding:18px; text-align:center; }
+nav { background:#102654; text-align:center; padding:10px; }
+nav a { color:#fff; margin:0 10px; text-decoration:none; padding:8px 14px; border-radius:4px; }
+nav a:hover { background:#1f3c88; }
+
+main { max-width:1100px; margin:30px auto; padding:0 20px; }
+.section { background:#f7f9fd; padding:25px; border-radius:6px; margin-bottom:25px; box-shadow:0 4px 10px rgba(0,0,0,0.06); }
+
+table { width:100%; border-collapse:collapse; }
+th, td { border:1px solid #ccc; padding:8px; text-align:center; }
+th { background:#e8edfa; }
+
+button { background:#1f3c88; color:#fff; border:none; padding:10px 18px; cursor:pointer; border-radius:4px; }
+button:hover { background:#162f66; }
+
+.flex { display:flex; gap:30px; }
+.flex > div { flex:1; }
+
+.output-box { border-left:6px solid #1f3c88; background:#fff; padding:15px; margin-top:20px; }
+
+footer { background:#f0f3fa; text-align:center; padding:12px; color:#1f3c88; }
 </style>
 </head>
+
 <body>
 
 <header>
 <h1>MR Pharma Tools</h1>
-<p>Pharmaceutical Calculators for Scientists and Students</p>
+<p>F1–F2 Similarity Calculator</p>
 </header>
 
 <nav>
 <a href="index.html">Home</a>
 <a href="calibration-curve.html">Calibration Curve</a>
 <a href="tablet_friability.html">Tablet % Friability</a>
-<a href="f1-f2-calculator.html">F1-F2 Similarity</a>
+<a href="f1-f2-calculator.html">F1–F2 Similarity</a>
 </nav>
 
 <main>
-<h2>F1-F2 Similarity Calculator</h2>
 
-<table id="f1f2Table">
-<thead>
-<tr><th>Time Point</th><th>Reference (%)</th><th>Test (%)</th></tr>
-</thead>
-<tbody>
-<tr><td>0</td><td><input type="number" step="any"></td><td><input type="number" step="any"></td></tr>
-<tr><td>10</td><td><input type="number" step="any"></td><td><input type="number" step="any"></td></tr>
-<tr><td>20</td><td><input type="number" step="any"></td><td><input type="number" step="any"></td></tr>
-<tr><td>30</td><td><input type="number" step="any"></td><td><input type="number" step="any"></td></tr>
-</tbody>
+<div class="section flex">
+<div>
+<h2>Input Data</h2>
+<table>
+<tr><th>Time</th><th>Reference (%)</th><th>Test (%)</th></tr>
+<tr><td>1</td><td><input></td><td><input></td></tr>
+<tr><td>2</td><td><input></td><td><input></td></tr>
+<tr><td>3</td><td><input></td><td><input></td></tr>
+<tr><td>4</td><td><input></td><td><input></td></tr>
+<tr><td>5</td><td><input></td><td><input></td></tr>
 </table>
+<button onclick="calculate()">Calculate</button>
+</div>
 
-<button onclick="calculateF1F2()">Calculate F1 & F2</button>
+<div>
+<canvas id="chart"></canvas>
+</div>
+</div>
 
-<p id="result" style="margin-top:15px; font-weight:bold;"></p>
-
-<script>
-function calculateF1F2(){
-    const table = document.getElementById('f1f2Table');
-    let ref=[], test=[];
-    for(let i=0;i<table.tBodies[0].rows.length;i++){
-        const r=parseFloat(table.tBodies[0].rows[i].cells[1].children[0].value);
-        const t=parseFloat(table.tBodies[0].rows[i].cells[2].children[0].value);
-        if(!isNaN(r) && !isNaN(t)){ ref.push(r); test.push(t); }
-    }
-    if(ref.length==0){ alert("Enter data"); return; }
-    let n=ref.length;
-    let f1 = 0;
-    for(let i=0;i<n;i++){ f1 += Math.abs(ref[i]-test[i]); }
-    f1 = (f1/(n*100))*100;
-    let f2 = 50 * Math.log10(100/Math.sqrt((1/n)*test.reduce((sum,v,i)=>sum+Math.pow(ref[i]-v,2),0)))*100;
-    if(f2>100) f2=100;
-    document.getElementById('result').innerText = `F1: ${f1.toFixed(2)} %, F2: ${f2.toFixed(2)} %`;
-}
-</script>
+<div class="output-box" id="result"></div>
 
 </main>
 
-<footer>
-&copy; 2025 Mehul Rohit
-</footer>
+<footer>© 2025 Mehul Rohit</footer>
+
+<script>
+function calculate(){
+let rows=document.querySelectorAll("table tr");
+let ref=[], test=[];
+for(let i=1;i<rows.length;i++){
+let r=rows[i].cells[1].children[0].value;
+let t=rows[i].cells[2].children[0].value;
+if(r && t){ ref.push(+r); test.push(+t); }
+}
+let n=ref.length;
+let f1=0,f2num=0,f2den=0;
+for(let i=0;i<n;i++){
+f1+=Math.abs(ref[i]-test[i]);
+f2num+=Math.pow(ref[i]-test[i],2);
+f2den+=Math.pow(ref[i],2);
+}
+f1=(f1/ref.reduce((a,b)=>a+b))*100;
+let f2=50*Math.log10((1/Math.sqrt(f2num/n))*100);
+
+document.getElementById("result").innerHTML=
+`<b>F1:</b> ${f1.toFixed(2)}<br><b>F2:</b> ${f2.toFixed(2)}`;
+
+new Chart(chart,{type:'line',
+data:{labels:ref.map((_,i)=>i+1),
+datasets:[
+{label:'Reference',data:ref},
+{label:'Test',data:test}
+]}});
+}
+</script>
 
 </body>
 </html>
