@@ -1,63 +1,154 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <title>Tablet % Friability | MR Pharma Tools</title>
+
 <style>
-body{font-family:"Times New Roman";margin:0}
-header,nav,footer{text-align:center}
-header{background:#1f3c88;color:#fff;padding:18px}
-nav{background:#102654;padding:10px}
-nav a{color:#fff;margin:0 10px;text-decoration:none}
-nav a:hover{background:#1f3c88;padding:6px}
-main{max-width:800px;margin:30px auto;padding:20px}
-.section{background:#f7f9fd;padding:25px;border-radius:6px}
-button{background:#1f3c88;color:#fff;border:none;padding:10px 18px}
-button:hover{background:#162f66}
-footer{background:#f0f3fa;padding:12px;color:#1f3c88}
+body {
+  font-family: "Times New Roman", Times, serif;
+  margin: 0;
+  background: #ffffff;
+}
+
+/* Header */
+header {
+  background: #1f3c88;
+  color: #ffffff;
+  padding: 18px;
+  text-align: center;
+}
+
+/* Navigation */
+nav {
+  background: #102654;
+  text-align: center;
+  padding: 10px;
+}
+
+nav a {
+  color: #ffffff;
+  margin: 0 10px;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 4px;
+}
+
+nav a:hover {
+  background: #1f3c88;
+}
+
+/* Main */
+main {
+  max-width: 700px;
+  margin: 30px auto;
+  padding: 20px;
+}
+
+.section {
+  background: #f7f9fd;
+  padding: 25px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+}
+
+label {
+  font-weight: bold;
+}
+
+input {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  margin-bottom: 15px;
+  font-family: "Times New Roman", Times, serif;
+}
+
+button {
+  background: #1f3c88;
+  color: #ffffff;
+  border: none;
+  padding: 10px 18px;
+  font-family: "Times New Roman", Times, serif;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+button:hover {
+  background: #162f66;
+}
+
+/* Output */
+.output-box {
+  margin-top: 20px;
+  padding: 15px;
+  background: #ffffff;
+  border-left: 6px solid #1f3c88;
+  font-size: 1.05em;
+}
+
+/* Footer */
+footer {
+  background: #f0f3fa;
+  text-align: center;
+  padding: 12px;
+  color: #1f3c88;
+  border-top: 1px solid #ccc;
+}
 </style>
 </head>
 
 <body>
 
 <header>
-<h1>MR Pharma Tools</h1>
-<p>Tablet % Friability Calculator</p>
+  <h1>MR Pharma Tools</h1>
+  <p>Tablet % Friability Calculator</p>
 </header>
 
 <nav>
-<a href="index.html">Home</a>
-<a href="calibration-curve.html">Calibration Curve</a>
-<a href="tablet_friability.html">Tablet % Friability</a>
-<a href="f1-f2-calculator.html">F1–F2 Similarity</a>
+  <a href="index.html">Home</a>
+  <a href="calibration-curve.html">Calibration Curve</a>
+  <a href="tablet_friability.html">Tablet % Friability</a>
+  <a href="f1-f2-calculator.html">F1–F2 Similarity</a>
 </nav>
 
 <main>
 
-<div class="section">
-<p><b>Note:</b> Dust should be carefully removed from tablets prior to weighing.</p>
+  <div class="section">
+    <p><strong>Note:</strong> Dust should be carefully removed from the tablets prior to testing and before measuring initial and final weight.</p>
 
-<label>Initial Weight (Wi) g:</label><br>
-<input id="wi"><br><br>
+    <label>Initial Weight of Tablets (Wi) – gram</label>
+    <input type="number" id="wi" step="any">
 
-<label>Final Weight (Wf) g:</label><br>
-<input id="wf"><br><br>
+    <label>Final Weight after Test (Wf) – gram</label>
+    <input type="number" id="wf" step="any">
 
-<button onclick="calc()">Calculate</button>
+    <button onclick="calculateFriability()">Calculate % Friability</button>
 
-<p id="out"></p>
-</div>
+    <div class="output-box" id="result"></div>
+  </div>
 
 </main>
 
-<footer>© 2025 Mehul Rohit</footer>
+<footer>
+  © 2025 Mehul Rohit
+</footer>
 
 <script>
-function calc(){
-let wi=+wi.value;
-let wf=+wf.value;
-let f=((wi-wf)/wi)*100;
-out.innerHTML=`<b>% Friability:</b> ${f.toFixed(2)} %`;
+function calculateFriability() {
+  let wi = parseFloat(document.getElementById("wi").value);
+  let wf = parseFloat(document.getElementById("wf").value);
+
+  if (isNaN(wi) || isNaN(wf) || wi <= 0) {
+    document.getElementById("result").innerHTML =
+      "Please enter valid initial and final weights.";
+    return;
+  }
+
+  let friability = ((wi - wf) / wi) * 100;
+
+  document.getElementById("result").innerHTML =
+    "<strong>% Friability:</strong> " + friability.toFixed(2) + " %";
 }
 </script>
 
