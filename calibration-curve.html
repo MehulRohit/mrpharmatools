@@ -105,18 +105,24 @@ function calculate() {
   });
   let traces = [];
   let resultText = "";
-  let headerInputs = document.querySelectorAll("#dataTable thead tr th input");
-  series.forEach((y,i)=>{
-    let seriesName = headerInputs[i+1] ? headerInputs[i+1].value : `Absorbance ${i+1}`;
-    let reg = linearRegression(x,y);
+  
+  series.forEach((y, i) => {
+    // Get header input for this series
+    let thInput = document.querySelector(`#dataTable thead tr th:nth-child(${i+2}) input`);
+    let seriesName = thInput && thInput.value ? thInput.value : `Absorbance ${i+1}`;
+    
+    let reg = linearRegression(x, y);
     resultText += `<b>${seriesName}:</b> y = ${reg.m.toFixed(3)}x + ${reg.c.toFixed(3)}, R² = ${reg.r2.toFixed(4)}<br>`;
-    traces.push({x:x,y:y,mode:"lines+markers",name:seriesName});
-    let regLine = x.map(v=>reg.m*v + reg.c);
-    traces.push({x:x,y:regLine,mode:"lines",line:{dash:'dot'},name:`Fit ${i+1}`});
+    
+    traces.push({x: x, y: y, mode: "lines+markers", name: seriesName});
+    let regLine = x.map(v => reg.m * v + reg.c);
+    traces.push({x: x, y: regLine, mode: "lines", line: {dash: 'dot'}, name: `Fit ${seriesName}`});
   });
+  
   document.getElementById("resultBox").style.display="block";
   document.getElementById("resultBox").innerHTML = resultText;
-  Plotly.newPlot("plot", traces,{
+  
+  Plotly.newPlot("plot", traces, {
     title:"Calibration Curve",
     xaxis:{title:"Concentration (µg/mL)"},
     yaxis:{title:"Absorbance (nm)"}
