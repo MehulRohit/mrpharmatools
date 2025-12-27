@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <title>Calibration Curve | MR Pharma Tools</title>
+
+<!-- Chart.js -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<!-- SheetJS for Excel export -->
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
 body { font-family:"Times New Roman", Times, serif; margin:0; background:#fff; }
@@ -61,6 +65,7 @@ footer { background:#f0f3fa; text-align:center; padding:12px; color:#1f3c88; bor
 <button onclick="addRow()">Add Concentration</button>
 <button onclick="addAbsorbance()">Add Absorbance Column</button>
 <button onclick="generateCurve()">Generate Calibration Curve</button>
+<button onclick="exportToExcel()">Export to Excel</button>
 
 <div class="output-box" id="resultBox"></div>
 </div>
@@ -175,5 +180,37 @@ function generateCurve() {
   });
 }
 
+// Export table to Excel
+function exportToExcel() {
+    let table = document.getElementById("dataTable");
+    let wb = XLSX.utils.book_new();
+    let ws_data = [];
+
+    // Header row
+    let header = [];
+    table.querySelectorAll("thead th").forEach(th => {
+        header.push(th.innerText);
+    });
+    ws_data.push(header);
+
+    // Data rows
+    table.querySelectorAll("tbody tr").forEach(tr => {
+        let row = [];
+        tr.querySelectorAll("td input").forEach(inp => {
+            row.push(inp.value || "");
+        });
+        ws_data.push(row);
+    });
+
+    let ws = XLSX.utils.aoa_to_sheet(ws_data);
+    XLSX.utils.book_append_sheet(wb, ws, "CalibrationCurve");
+
+    XLSX.writeFile(wb, "CalibrationCurve.xlsx");
+}
+
+// Random color for graph
 function getRandomColor(){let letters='0123456789ABCDEF';let color='#';for(let i=0;i<6;i++){color+=letters[Math.floor(Math.random()*16)];}return color;}
 </script>
+
+</body>
+</html>
