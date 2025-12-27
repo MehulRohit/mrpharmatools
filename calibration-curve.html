@@ -1,136 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>MR Pharma Tools – Calibration Curve</title>
+<title>Calibration Curve | MR Pharma Tools</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
-body { font-family: "Times New Roman", Times, serif; background: #ffffff; margin:0; padding:0; }
-header { background:#1f3c88; color:white; padding:15px 20px; display:flex; flex-direction:column; align-items:center; }
-header h1 { margin:0; font-size:2em; }
-header p { margin:5px 0 0; font-size:0.95em; color:#eee; }
-nav { display:flex; justify-content:center; background:#16306a; flex-wrap:wrap; }
-nav a { color:white; padding:12px 20px; text-decoration:none; font-family:"Times New Roman", Times, serif; transition:background 0.2s; }
-nav a:hover { background:#1f3c88; }
-main { padding:30px 20px; max-width:1000px; margin:auto; }
-footer { background:#f5f7fb; color:#1f3c88; text-align:center; padding:12px 0; font-size:0.9em; border-top:1px solid #ddd; }
-@media(max-width:600px){ nav{ flex-direction:column; } }
-table { border-collapse: collapse; width:100%; margin-bottom:20px; }
-table, th, td { border:1px solid #ddd; }
-th, td { padding:8px; text-align:center; }
-input[type=number], input[type=text] { width:80px; padding:4px; margin:2px; text-align:center; }
-button { padding:8px 15px; background:#1f3c88; color:white; border:none; border-radius:4px; cursor:pointer; }
-button:hover { background:#16306a; }
+body{font-family:"Times New Roman";margin:0}
+header{background:#1f3c88;color:#fff;padding:18px;text-align:center}
+nav{background:#102654;text-align:center;padding:10px}
+nav a{color:#fff;margin:0 10px;text-decoration:none}
+main{max-width:1000px;margin:30px auto;padding:20px}
+.section{background:#f7f9fd;padding:25px;border-radius:6px}
+table{width:100%;border-collapse:collapse}
+th,td{border:1px solid #ccc;padding:8px;text-align:center}
+footer{background:#f0f3fa;text-align:center;padding:12px;color:#1f3c88}
 </style>
 </head>
+
 <body>
 
 <header>
-  <h1>MR Pharma Tools</h1>
-  <p>Pharmaceutical Calculators for Scientists and Students</p>
+<h1>MR Pharma Tools</h1>
+<p>Calibration Curve Calculator</p>
 </header>
 
 <nav>
-  <a href="index.html">Home</a>
-  <a href="calibration-curve.html">Calibration Curve</a>
-  <a href="tablet_friability.html">Tablet % Friability</a>
-  <a href="f1-f2-calculator.html">F1-F2 Similarity</a>
+<a href="index.html">Home</a>
+<a href="calibration-curve.html">Calibration Curve</a>
+<a href="tablet_friability.html">Tablet % Friability</a>
+<a href="f1-f2-calculator.html">F1–F2 Similarity</a>
 </nav>
 
 <main>
-<h2>Calibration Curve Calculator</h2>
 
-<p>Enter concentrations and absorbance values to generate calibration curve, regression equation, and R².</p>
-
-<table id="calibrationTable">
-  <thead>
-    <tr>
-      <th>Concentration (µg/mL)</th>
-      <th>Absorbance</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td><input type="number" step="any"></td>
-      <td><input type="number" step="any"></td>
-    </tr>
-    <tr>
-      <td><input type="number" step="any"></td>
-      <td><input type="number" step="any"></td>
-    </tr>
-    <tr>
-      <td><input type="number" step="any"></td>
-      <td><input type="number" step="any"></td>
-    </tr>
-  </tbody>
+<div class="section">
+<table>
+<tr><th>Concentration</th><th>Absorbance</th></tr>
+<tr><td><input></td><td><input></td></tr>
+<tr><td><input></td><td><input></td></tr>
+<tr><td><input></td><td><input></td></tr>
+<tr><td><input></td><td><input></td></tr>
 </table>
+<button onclick="draw()">Generate Curve</button>
+</div>
 
-<button onclick="generateCalibration()">Generate Curve</button>
-
-<canvas id="calibrationChart" width="400" height="200" style="margin-top:20px;"></canvas>
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-// JavaScript for Calibration Curve
-function generateCalibration() {
-    const table = document.getElementById('calibrationTable');
-    const conc = [];
-    const abs = [];
-    for(let i=0;i<table.tBodies[0].rows.length;i++){
-        const c = parseFloat(table.tBodies[0].rows[i].cells[0].children[0].value);
-        const a = parseFloat(table.tBodies[0].rows[i].cells[1].children[0].value);
-        if(!isNaN(c) && !isNaN(a)){ conc.push(c); abs.push(a); }
-    }
-    if(conc.length<2){ alert("Enter at least 2 data points"); return; }
-
-    // Linear regression
-    let sumX=0,sumY=0,sumXY=0,sumXX=0;
-    for(let i=0;i<conc.length;i++){
-        sumX+=conc[i]; sumY+=abs[i]; sumXY+=conc[i]*abs[i]; sumXX+=conc[i]*conc[i];
-    }
-    const n=conc.length;
-    const slope = (n*sumXY - sumX*sumY)/(n*sumXX - sumX*sumX);
-    const intercept = (sumY - slope*sumX)/n;
-    // R^2
-    let yMean=sumY/n, ssTot=0, ssRes=0;
-    for(let i=0;i<n;i++){
-        const yPred = slope*conc[i]+intercept;
-        ssRes += (abs[i]-yPred)*(abs[i]-yPred);
-        ssTot += (abs[i]-yMean)*(abs[i]-yMean);
-    }
-    const r2 = 1 - ssRes/ssTot;
-
-    // Plot
-    const ctx = document.getElementById('calibrationChart').getContext('2d');
-    if(window.calChart) window.calChart.destroy();
-    window.calChart = new Chart(ctx, {
-        type:'scatter',
-        data:{
-            datasets:[{
-                label:'Data Points',
-                data: conc.map((v,i)=>({x:v, y:abs[i]})),
-                backgroundColor:'blue'
-            },{
-                label:'Best Fit Line',
-                type:'line',
-                data: conc.map(v=>({x:v, y:slope*v+intercept})),
-                borderColor:'red',
-                fill:false,
-                tension:0
-            }]
-        },
-        options:{
-            scales:{ x:{title:{display:true,text:'Concentration (µg/mL)'}}, y:{title:{display:true,text:'Absorbance'}} },
-            plugins:{ title:{ display:true, text:`y = ${slope.toFixed(4)}x + ${intercept.toFixed(4)}, R² = ${r2.toFixed(4)}` } }
-        }
-    });
-}
-</script>
+<canvas id="g"></canvas>
 
 </main>
 
-<footer>
-&copy; 2025 Mehul Rohit
-</footer>
+<footer>© 2025 Mehul Rohit</footer>
+
+<script>
+function draw(){
+let c=[],a=[];
+document.querySelectorAll("table tr").forEach((r,i)=>{
+if(i>0){
+let x=r.cells[0].children[0].value;
+let y=r.cells[1].children[0].value;
+if(x&&y){c.push(+x);a.push(+y);}
+}
+});
+new Chart(g,{type:'scatter',
+data:{datasets:[{label:'Calibration',data:c.map((v,i)=>({x:v,y:a[i]}))}]}
+});
+}
+</script>
 
 </body>
 </html>
