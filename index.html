@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>MR Pharma Tools – f1 & f2 Calculator</title>
 
-<!-- SheetJS library for Excel export -->
 <!-- Plotly for graph -->
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 
@@ -12,14 +11,37 @@
 body {
   font-family: "Times New Roman", Times, serif;
   background: #ffffff;
-  color: #000000;
-  max-width: 1000px;
+  color: #000;
+  max-width: 1200px;
   margin: auto;
-  padding: 25px;
+  padding: 20px;
 }
 
 h2 {
   color: #1f3c88;
+  margin-bottom: 5px;
+}
+
+p {
+  margin-top: 0;
+}
+
+/* === LAYOUT === */
+.container {
+  display: flex;
+  gap: 25px;
+}
+
+/* Left: Table & Controls */
+.left-panel {
+  width: 50%;
+}
+
+/* Right: Graph */
+.right-panel {
+  width: 50%;
+  border-left: 2px solid #f0f0f0;
+  padding-left: 20px;
 }
 
 table {
@@ -30,7 +52,7 @@ table {
 
 th, td {
   border: 1px solid #dddddd;
-  padding: 8px;
+  padding: 6px;
   text-align: center;
 }
 
@@ -44,8 +66,8 @@ input {
 }
 
 button {
-  margin-top: 15px;
-  padding: 8px 16px;
+  margin-top: 12px;
+  padding: 7px 14px;
   font-family: "Times New Roman", Times, serif;
   background: #1f3c88;
   color: #fff;
@@ -58,8 +80,8 @@ button.secondary {
 }
 
 #resultBox {
-  margin-top: 20px;
-  padding: 15px;
+  margin-top: 15px;
+  padding: 12px;
   border-radius: 5px;
   display: none;
 }
@@ -75,7 +97,7 @@ button.secondary {
 }
 
 #plot {
-  margin-top: 30px;
+  height: 420px;
 }
 </style>
 </head>
@@ -85,57 +107,49 @@ button.secondary {
 <h2>Similarity (f₂) & Dissimilarity (f₁) Calculator</h2>
 <p>Comparison of dissolution profiles as per regulatory guidance.</p>
 
-<table id="dataTable">
-<thead>
-<tr>
-  <th>Time</th>
-  <th>Reference (% Release)</th>
-  <th>Test (% Release)</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-  <td><input value="5"></td>
-  <td><input value="10"></td>
-  <td><input value="12"></td>
-</tr>
-<tr>
-  <td><input value="10"></td>
-  <td><input value="25"></td>
-  <td><input value="27"></td>
-</tr>
-<tr>
-  <td><input value="15"></td>
-  <td><input value="45"></td>
-  <td><input value="43"></td>
-</tr>
-<tr>
-  <td><input value="30"></td>
-  <td><input value="65"></td>
-  <td><input value="63"></td>
-</tr>
-<tr>
-  <td><input value="45"></td>
-  <td><input value="85"></td>
-  <td><input value="83"></td>
-</tr>
-</tbody>
-</table>
+<div class="container">
 
-<button onclick="addRow()" class="secondary">+ Add Row</button>
-<button onclick="calculate()">Calculate</button>
-<button onclick="exportExcel()">Download Excel</button>
+  <!-- LEFT SIDE -->
+  <div class="left-panel">
 
-<div id="resultBox"></div>
-<div id="plot"></div>
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Reference (% Release)</th>
+          <th>Test (% Release)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><input value="5"></td><td><input value="10"></td><td><input value="12"></td></tr>
+        <tr><td><input value="10"></td><td><input value="25"></td><td><input value="27"></td></tr>
+        <tr><td><input value="15"></td><td><input value="45"></td><td><input value="43"></td></tr>
+        <tr><td><input value="30"></td><td><input value="65"></td><td><input value="63"></td></tr>
+        <tr><td><input value="45"></td><td><input value="85"></td><td><input value="83"></td></tr>
+      </tbody>
+    </table>
+
+    <button class="secondary" onclick="addRow()">+ Add Row</button>
+    <button onclick="calculate()">Calculate</button>
+    <button onclick="exportExcel()">Download Excel</button>
+
+    <div id="resultBox"></div>
+
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="right-panel">
+    <div id="plot"></div>
+  </div>
+
+</div>
 
 <script>
 function addRow() {
-  let table = document.getElementById("dataTable").getElementsByTagName("tbody")[0];
-  let row = table.insertRow();
+  let tbody = document.querySelector("#dataTable tbody");
+  let row = tbody.insertRow();
   for (let i = 0; i < 3; i++) {
-    let cell = row.insertCell();
-    cell.innerHTML = "<input>";
+    row.insertCell().innerHTML = "<input>";
   }
 }
 
@@ -143,38 +157,35 @@ function calculate() {
   let rows = document.querySelectorAll("#dataTable tbody tr");
   let time = [], R = [], T = [];
 
-  rows.forEach(row => {
-    let cells = row.querySelectorAll("input");
-    if (cells[0].value && cells[1].value && cells[2].value) {
-      time.push(Number(cells[0].value));
-      R.push(Number(cells[1].value));
-      T.push(Number(cells[2].value));
+  rows.forEach(r => {
+    let c = r.querySelectorAll("input");
+    if (c[0].value && c[1].value && c[2].value) {
+      time.push(+c[0].value);
+      R.push(+c[1].value);
+      T.push(+c[2].value);
     }
   });
 
-  if (R.length < 3 || R.length !== T.length) {
-    alert("Minimum 3 matching data points required.");
+  if (R.length < 3) {
+    alert("Minimum 3 data points required.");
     return;
   }
 
-  let n = R.length, sumDiff = 0, sumRef = 0, sumSq = 0;
-
-  for (let i = 0; i < n; i++) {
+  let sumDiff = 0, sumRef = 0, sumSq = 0;
+  for (let i = 0; i < R.length; i++) {
     sumDiff += Math.abs(R[i] - T[i]);
     sumRef += R[i];
     sumSq += Math.pow(R[i] - T[i], 2);
   }
 
   let f1 = (sumDiff / sumRef) * 100;
-  let f2 = 50 * Math.log10(Math.pow(1 + sumSq / n, -0.5) * 100);
-
-  let resultBox = document.getElementById("resultBox");
+  let f2 = 50 * Math.log10(Math.pow(1 + sumSq / R.length, -0.5) * 100);
   let similar = (f1 <= 15 && f2 >= 50);
 
-  resultBox.className = similar ? "similar" : "notsimilar";
-  resultBox.style.display = "block";
-
-  resultBox.innerHTML = `
+  let box = document.getElementById("resultBox");
+  box.className = similar ? "similar" : "notsimilar";
+  box.style.display = "block";
+  box.innerHTML = `
     <b>Results</b><br>
     f₁ = ${f1.toFixed(2)}<br>
     f₂ = ${f2.toFixed(2)}<br><br>
@@ -192,45 +203,40 @@ function calculate() {
   });
 }
 
-// Excel Export
 function exportExcel() {
   let rows = document.querySelectorAll("#dataTable tbody tr");
-  let data = [["Time", "Reference", "Test"]];
+  let csv = "Time,Reference,Test\n";
+  let R = [], T = [];
 
-  rows.forEach(row => {
-    let cells = row.querySelectorAll("input");
-    if (cells[0].value && cells[1].value && cells[2].value) {
-      data.push([Number(cells[0].value), Number(cells[1].value), Number(cells[2].value)]);
+  rows.forEach(r => {
+    let c = r.querySelectorAll("input");
+    if (c[0].value && c[1].value && c[2].value) {
+      csv += `${c[0].value},${c[1].value},${c[2].value}\n`;
+      R.push(+c[1].value);
+      T.push(+c[2].value);
     }
   });
 
-  if (data.length < 4) {
-    alert("Minimum 3 data points required.");
-    return;
+  let sumDiff = 0, sumRef = 0, sumSq = 0;
+  for (let i = 0; i < R.length; i++) {
+    sumDiff += Math.abs(R[i] - T[i]);
+    sumRef += R[i];
+    sumSq += Math.pow(R[i] - T[i], 2);
   }
 
-  let n = data.length - 1, sumDiff = 0, sumRef = 0, sumSq = 0;
-  let R = [], T = [];
-  for (let i = 1; i < data.length; i++) {
-    R.push(data[i][1]);
-    T.push(data[i][2]);
-    sumDiff += Math.abs(data[i][1] - data[i][2]);
-    sumRef += data[i][1];
-    sumSq += Math.pow(data[i][1] - data[i][2], 2);
-  }
   let f1 = (sumDiff / sumRef) * 100;
-  let f2 = 50 * Math.log10(Math.pow(1 + sumSq / n, -0.5) * 100);
-  let interpretation = (f1 <= 15 && f2 >= 50) ? "Profiles are SIMILAR" : "Profiles are NOT SIMILAR";
+  let f2 = 50 * Math.log10(Math.pow(1 + sumSq / R.length, -0.5) * 100);
+  let conclusion = (f1 <= 15 && f2 >= 50)
+    ? "Profiles are SIMILAR"
+    : "Profiles are NOT SIMILAR";
 
-  data.push([]);
-  data.push(["f1", f1.toFixed(2)]);
-  data.push(["f2", f2.toFixed(2)]);
-  data.push(["Conclusion", interpretation]);
+  csv += `\n,f1,${f1.toFixed(2)}\n,f2,${f2.toFixed(2)}\n,Conclusion,${conclusion}`;
 
-  let ws = XLSX.utils.aoa_to_sheet(data);
-  let wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "f1_f2 Results");
-  XLSX.writeFile(wb, "MR_Pharma_Tools_f1_f2.xlsx");
+  let blob = new Blob([csv], { type: "application/vnd.ms-excel" });
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "MR_Pharma_Tools_f1_f2.xls";
+  a.click();
 }
 </script>
 
