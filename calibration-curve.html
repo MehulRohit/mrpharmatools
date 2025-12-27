@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>MR Pharma Tools – Calibration Curve</title>
-
 <script src="https://cdn.plot.ly/plotly-latest.min.js" defer></script>
-
 <style>
 body {
   font-family: "Times New Roman", Times, serif;
@@ -14,117 +12,137 @@ body {
   margin: auto;
   padding: 20px;
 }
-
-h2 {
-  color: #1f3c88;
-  margin-bottom: 5px;
-}
-
-.container {
-  display: flex;
-  gap: 25px;
-}
-
-.left-panel {
-  width: 50%;
-}
-
-.right-panel {
-  width: 50%;
-  border-left: 2px solid #f0f0f0;
-  padding-left: 20px;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 15px;
-}
-
-th, td {
-  border: 1px solid #dddddd;
-  padding: 6px;
-  text-align: center;
-}
-
-th {
-  background: #f5f7fb;
-}
-
-input {
-  width: 90%;
-  font-family: "Times New Roman", Times, serif;
-}
-
-button {
-  margin-top: 12px;
-  padding: 7px 14px;
-  background: #1f3c88;
-  color: #fff;
-  border: none;
-  cursor: pointer;
-  font-family: "Times New Roman", Times, serif;
-}
-
-#resultBox {
-  margin-top: 15px;
-  padding: 12px;
-  display: none;
-  background: #f5f7fb;
-  border-left: 6px solid #1f3c88;
-}
-
-#plot {
-  height: 420px;
-}
+h2 { color: #1f3c88; margin-bottom: 5px; }
+p { margin-top: 0; }
+.container { display: flex; gap: 25px; }
+.left-panel { width: 50%; }
+.right-panel { width: 50%; border-left: 2px solid #f0f0f0; padding-left: 20px; }
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+th, td { border: 1px solid #dddddd; padding: 6px; text-align: center; }
+th { background: #f5f7fb; }
+input { width: 90%; font-family: "Times New Roman", Times, serif; }
+button { margin-top: 12px; padding: 7px 14px; background: #1f3c88; color: #fff; border: none; cursor: pointer; font-family: "Times New Roman", Times, serif; }
+#resultBox { margin-top: 15px; padding: 12px; display: none; background: #f5f7fb; border-left: 6px solid #1f3c88; }
+#plot { height: 420px; }
 </style>
 </head>
-
 <body>
-
 <h2>Calibration Curve Calculator</h2>
-<p>Linear regression with equation and R² value.</p>
-
+<p>Enter concentration and absorbance values. Optional additional absorbance series can be added.</p>
 <div class="container">
-
   <div class="left-panel">
-
     <table id="dataTable">
       <thead>
         <tr>
-          <th>Concentration</th>
-          <th>Response</th>
+          <th>Concentration (µg/mL)</th>
+          <th>Absorbance (nm)</th>
         </tr>
       </thead>
       <tbody>
-        <tr><td><input value="10"></td><td><input value="120"></td></tr>
-        <tr><td><input value="20"></td><td><input value="245"></td></tr>
-        <tr><td><input value="30"></td><td><input value="360"></td></tr>
-        <tr><td><input value="40"></td><td><input value="480"></td></tr>
-        <tr><td><input value="50"></td><td><input value="610"></td></tr>
+        <tr><td><input value="10"></td><td><input value="0.12"></td></tr>
+        <tr><td><input value="20"></td><td><input value="0.25"></td></tr>
+        <tr><td><input value="30"></td><td><input value="0.37"></td></tr>
+        <tr><td><input value="40"></td><td><input value="0.50"></td></tr>
+        <tr><td><input value="50"></td><td><input value="0.62"></td></tr>
       </tbody>
     </table>
-
     <button onclick="addRow()">+ Add Row</button>
+    <button onclick="addColumn()">+ Add Absorbance Series</button>
     <button onclick="calculate()">Calculate</button>
-
+    <button onclick="exportExcel()">Download Excel</button>
     <div id="resultBox"></div>
-
   </div>
-
   <div class="right-panel">
     <div id="plot"></div>
   </div>
-
 </div>
 
 <script>
+// Add new row
 function addRow() {
-  let row = document.querySelector("#dataTable tbody").insertRow();
-  row.insertCell().innerHTML = "<input>";
-  row.insertCell().innerHTML = "<input>";
+  let tbody = document.querySelector("#dataTable tbody");
+  let row = tbody.insertRow();
+  let cols = document.querySelector("#dataTable thead tr").children.length;
+  for (let i = 0; i < cols; i++) { row.insertCell().innerHTML = "<input>"; }
+}
+
+// Add new absorbance column
+function addColumn() {
+  let thead = document.querySelector("#dataTable thead tr");
+  let colNum = thead.children.length;
+  let newTh = document.createElement("th");
+  newTh.innerText = `Absorbance ${colNum-1} (nm)`;
+  thead.appendChild(newTh);
+  let rows = document.querySelectorAll("#dataTable tbody tr");
+  rows.forEach(r => { r.insertCell().innerHTML = "<input>"; });
+}
+
+// Linear regression
+function linearRegression(x, y) {
+  let n = x.length;
+  let sumX = x.reduce((a,b)=>a+b,0), sumY = y.reduce((a,b)=>a+b,0);
+  let sumXY = x.map((v,i)=>v*y[i]).reduce((a,b)=>a+b,0);
+  let sumX2 = x.map(v=>v*v).reduce((a,b)=>a+b,0);
+  let m = (n*sumXY - sumX*sumY)/(n*sumX2 - sumX*sumX);
+  let c = (sumY - m*sumX)/n;
+  // R²
+  let yMean = sumY/n;
+  let ssTot = y.map(v=>Math.pow(v - yMean,2)).reduce((a,b)=>a+b,0);
+  let ssRes = y.map((v,i)=>Math.pow(v - (m*x[i]+c),2)).reduce((a,b)=>a+b,0);
+  let r2 = 1 - ssRes/ssTot;
+  return {m,c,r2};
+}
+
+// Calculate
+function calculate() {
+  let rows = document.querySelectorAll("#dataTable tbody tr");
+  if (rows.length<2) { alert("At least 2 points required."); return; }
+  let cols = document.querySelector("#dataTable thead tr").children.length;
+  let x = [], series = [];
+  for (let i=0;i<cols-1;i++) series.push([]);
+  rows.forEach(r=>{
+    let inputs = r.querySelectorAll("input");
+    x.push(+inputs[0].value);
+    for (let j=1;j<cols;j++) series[j-1].push(+inputs[j].value);
+  });
+  let traces = [];
+  let resultText = "";
+  series.forEach((y,i)=>{
+    let reg = linearRegression(x,y);
+    resultText += `<b>Series ${i+1}:</b> y = ${reg.m.toFixed(3)}x + ${reg.c.toFixed(3)}, R² = ${reg.r2.toFixed(4)}<br>`;
+    traces.push({x:x,y:y,mode:"lines+markers",name:`Absorbance ${i+1}`});
+    let regLine = x.map(v=>reg.m*v + reg.c);
+    traces.push({x:x,y:regLine,mode:"lines",line:{dash:'dot'},name:`Fit ${i+1}`});
+  });
+  document.getElementById("resultBox").style.display="block";
+  document.getElementById("resultBox").innerHTML = resultText;
+  Plotly.newPlot("plot", traces,{
+    title:"Calibration Curve",
+    xaxis:{title:"Concentration (µg/mL)"},
+    yaxis:{title:"Absorbance (nm)"}
+  });
+}
+
+// Export Excel
+function exportExcel() {
+  let rows = document.querySelectorAll("#dataTable tbody tr");
+  let cols = document.querySelector("#dataTable thead tr").children.length;
+  let csv = [];
+  let headers = [];
+  document.querySelectorAll("#dataTable thead tr th").forEach(th=>headers.push(th.innerText));
+  csv.push(headers.join(","));
+  rows.forEach(r=>{
+    let inputs = r.querySelectorAll("input");
+    let rowData = [];
+    inputs.forEach(input=>rowData.push(input.value));
+    csv.push(rowData.join(","));
+  });
+  let blob = new Blob([csv.join("\n")],{type:"application/vnd.ms-excel"});
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download="Calibration_Curve.xls";
+  a.click();
 }
 </script>
-
 </body>
 </html>
