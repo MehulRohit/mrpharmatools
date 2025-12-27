@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>MR Pharma Tools – f1 & f2 Calculator</title>
+
+<!-- Plotly for graph -->
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+
+<style>
+body {
+  font-family: "Times New Roman", Times, serif;
+  background: #ffffff;
+  color: #000;
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+h2 {
+  color: #1f3c88;
+  margin-bottom: 5px;
+}
+
+p {
+  margin-top: 0;
+}
+
+/* === LAYOUT === */
+.container {
+  display: flex;
+  gap: 25px;
+}
+
+/* Left: Table & Controls */
+.left-panel {
+  width: 50%;
+}
+
+/* Right: Graph */
+.right-panel {
+  width: 50%;
+  border-left: 2px solid #f0f0f0;
+  padding-left: 20px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 15px;
+}
+
+th, td {
+  border: 1px solid #dddddd;
+  padding: 6px;
+  text-align: center;
+}
+
+th {
+  background: #f5f7fb;
+}
+
+input {
+  width: 90%;
+  font-family: "Times New Roman", Times, serif;
+}
+
+button {
+  margin-top: 12px;
+  padding: 7px 14px;
+  font-family: "Times New Roman", Times, serif;
+  background: #1f3c88;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: #6c757d;
+}
+
+#resultBox {
+  margin-top: 15px;
+  padding: 12px;
+  border-radius: 5px;
+  display: none;
+}
+
+.similar {
+  background: #e6f4ea;
+  border-left: 6px solid #2e7d32;
+}
+
+.notsimilar {
+  background: #fdecea;
+  border-left: 6px solid #b23b3b;
+}
+
+#plot {
+  height: 420px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Similarity (f₂) & Dissimilarity (f₁) Calculator</h2>
+<p>Comparison of dissolution profiles as per regulatory guidance.</p>
+
+<div class="container">
+
+  <!-- LEFT SIDE -->
+  <div class="left-panel">
+
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Reference (% Release)</th>
+          <th>Test (% Release)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><input value="5"></td><td><input value="10"></td><td><input value="12"></td></tr>
+        <tr><td><input value="10"></td><td><input value="25"></td><td><input value="27"></td></tr>
+        <tr><td><input value="15"></td><td><input value="45"></td><td><input value="43"></td></tr>
+        <tr><td><input value="30"></td><td><input value="65"></td><td><input value="63"></td></tr>
+        <tr><td><input value="45"></td><td><input value="85"></td><td><input value="83"></td></tr>
+      </tbody>
+    </table>
+
+    <button class="secondary" onclick="addRow()">+ Add Row</button>
+    <button onclick="calculate()">Calculate</button>
+    <button onclick="exportExcel()">Download Excel</button>
+
+    <div id="resultBox"></div>
+
+  </div>
+
+  <!-- RIGHT SIDE -->
+  <div class="right-panel">
+    <div id="plot"></div>
+  </div>
+
+</div>
+
+<script>
+function addRow() {
+  let tbody = document.querySelector("#dataTable tbody");
+  let row = tbody.insertRow();
+  for (let i = 0; i < 3; i++) {
+    row.insertCell().innerHTML = "<input>";
+  }
+}
+
+function calculate() {
+  let rows = document.querySelectorAll("#dataTable tbody tr");
+  let time = [], R = [], T = [];
+
+  rows.forEach(r => {
+    let c = r.querySelectorAll("input");
+    if (c[0].value && c[1].value && c[2].value) {
+      time.push(+c[0].value);
+      R.push(+c[1].value);
+      T.push(+c[2].value);
+    }
+  });
+
+  if (R.length < 3) {
+    alert("Minimum 3 data points required.");
+    return;
+  }
+
+  let sumDiff = 0, sumRef = 0, sumSq = 0;
+  for (let i = 0; i < R.length; i++) {
+    sumDiff += Math.abs(R[i] - T[i]);
+    sumRef += R[i];
+    sumSq += Math.pow(R[i] - T[i], 2);
+  }
+
+  let f1 = (sumDiff / sumRef) * 100;
+  let f2 = 50 * Math.log10(Math.pow(1 + sumSq / R.length, -0.5) * 100);
+  let similar = (f1 <= 15 && f2 >= 50);
+
+  let box = document.getElementById("resultBox");
+  box.className = similar ? "similar" : "notsimilar";
+  box.style.display = "block";
+  box.innerHTML = `
+    <b>Results</b><br>
+    f₁ = ${f1.toFixed(2)}<br>
+    f₂ = ${f2.toFixed(2)}<br><br>
+    <b>${similar ? "✔ Profiles are SIMILAR" : "✖ Profiles are NOT SIMILAR"}</b><br>
+    Criteria: f₁ ≤ 15 and f₂ ≥ 50
+  `;
+
+  Plotly.newPlot("plot", [
+    { x: time, y: R, mode: "lines+markers", name: "Reference" },
+    { x: time, y: T, mode: "lines+markers", name: "Test" }
+  ], {
+    title: "% Drug Release vs Time",
+    xaxis: { title: "Time" },
+    yaxis: { title: "% Release" }
+  });
+}
+
+function exportExcel() {
+  let rows = document.querySelectorAll("#dataTable tbody tr");
+  let csv = "Time,Reference,Test\n";
+  let R = [], T = [];
+
+  rows.forEach(r => {
+    let c = r.querySelectorAll("input");
+    if (c[0].value && c[1].value && c[2].value) {
+      csv += `${c[0].value},${c[1].value},${c[2].value}\n`;
+      R.push(+c[1].value);
+      T.push(+c[2].value);
+    }
+  });
+
+  let sumDiff = 0, sumRef = 0, sumSq = 0;
+  for (let i = 0; i < R.length; i++) {
+    sumDiff += Math.abs(R[i] - T[i]);
+    sumRef += R[i];
+    sumSq += Math.pow(R[i] - T[i], 2);
+  }
+
+  let f1 = (sumDiff / sumRef) * 100;
+  let f2 = 50 * Math.log10(Math.pow(1 + sumSq / R.length, -0.5) * 100);
+  let conclusion = (f1 <= 15 && f2 >= 50)
+    ? "Profiles are SIMILAR"
+    : "Profiles are NOT SIMILAR";
+
+  csv += `\n,f1,${f1.toFixed(2)}\n,f2,${f2.toFixed(2)}\n,Conclusion,${conclusion}`;
+
+  let blob = new Blob([csv], { type: "application/vnd.ms-excel" });
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "MR_Pharma_Tools_f1_f2.xls";
+  a.click();
+}
+</script>
+
+</body>
+</html>
