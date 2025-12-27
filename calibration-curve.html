@@ -4,129 +4,51 @@
 <meta charset="UTF-8">
 <title>Calibration Curve | MR Pharma Tools</title>
 
-<!-- Chart.js -->
+<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 
 <style>
 body {
   font-family: "Times New Roman", Times, serif;
-  margin: 0;
-  background: #ffffff;
+  margin:0; background:#fff;
 }
 
 /* Header */
 header {
-  background: #1f3c88;
-  color: white;
-  padding: 18px;
-  text-align: center;
+  background:#1f3c88; color:white; padding:18px; text-align:center;
 }
 
 /* Navigation */
 nav {
-  background: #102654;
-  padding: 10px;
-  text-align: center;
+  background:#102654; padding:10px; text-align:center;
 }
-
 nav a {
-  color: white;
-  margin: 0 10px;
-  text-decoration: none;
-  padding: 8px 14px;
-  border-radius: 4px;
+  color:white; margin:0 10px; text-decoration:none; padding:8px 14px; border-radius:4px;
 }
+nav a:hover { background:#1f3c88; }
 
-nav a:hover {
-  background: #1f3c88;
-}
-
-/* Layout */
-main {
-  max-width: 1100px;
-  margin: 30px auto;
-  padding: 20px;
-}
-
-.section {
-  background: #f7f9fd;
-  padding: 25px;
-  border-radius: 6px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.06);
-}
-
-.flex {
-  display: flex;
-  gap: 30px;
-}
-
-.flex > div {
-  flex: 1;
-}
+/* Main layout */
+main { max-width:1200px; margin:30px auto; padding:20px; }
+.section { background:#f7f9fd; padding:25px; border-radius:6px; box-shadow:0 4px 10px rgba(0,0,0,0.06); }
+.flex { display:flex; gap:30px; flex-wrap:wrap; }
+.flex > div { flex:1; min-width:300px; }
 
 /* Table */
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+table { width:100%; border-collapse:collapse; margin-bottom:15px; }
+th, td { border:1px solid #ccc; padding:8px; text-align:center; }
+th { background:#e8edfa; }
+input { width:100%; padding:6px; font-family:"Times New Roman", Times, serif; }
 
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-  text-align: center;
-}
-
-th {
-  background: #e8edfa;
-}
-
-/* Inputs */
-input {
-  width: 100%;
-  padding: 6px;
-  font-family: "Times New Roman", Times, serif;
-}
-
-/* Button */
-button {
-  margin-top: 15px;
-  background: #1f3c88;
-  color: white;
-  border: none;
-  padding: 10px 18px;
-  font-family: "Times New Roman", Times, serif;
-  cursor: pointer;
-  border-radius: 4px;
-}
-
-button:hover {
-  background: #162f66;
-}
+/* Buttons */
+button { background:#1f3c88; color:white; border:none; padding:10px 18px; cursor:pointer; border-radius:4px; font-family:"Times New Roman", Times, serif; }
+button:hover { background:#162f66; }
 
 /* Output */
-.output-box {
-  margin-top: 20px;
-  padding: 15px;
-  background: white;
-  border-left: 6px solid #1f3c88;
-  font-size: 1.05em;
-}
+.output-box { margin-top:20px; padding:15px; background:white; border-left:6px solid #1f3c88; font-size:1.05em; }
 
 /* Footer */
-footer {
-  background: #f0f3fa;
-  text-align: center;
-  padding: 12px;
-  color: #1f3c88;
-  border-top: 1px solid #ccc;
-}
+footer { background:#f0f3fa; text-align:center; padding:12px; color:#1f3c88; border-top:1px solid #ccc; }
 
-/* Responsive */
-@media (max-width: 800px) {
-  .flex {
-    flex-direction: column;
-  }
-}
 </style>
 </head>
 
@@ -148,133 +70,139 @@ footer {
 
 <div class="section flex">
 
-  <!-- INPUT TABLE -->
-  <div>
-    <h2>Input Data</h2>
+<!-- Table Section -->
+<div>
+<h2>Input Data</h2>
 
-    <table id="dataTable">
-      <tr>
-        <th>Concentration (µg/mL)</th>
-        <th>Absorbance</th>
-      </tr>
-      <tr><td><input></td><td><input></td></tr>
-      <tr><td><input></td><td><input></td></tr>
-      <tr><td><input></td><td><input></td></tr>
-      <tr><td><input></td><td><input></td></tr>
-      <tr><td><input></td><td><input></td></tr>
-    </table>
+<table id="dataTable">
+  <thead>
+    <tr>
+      <th>Concentration (µg/mL)</th>
+      <th contenteditable="true">Absorbance 1 (nm)</th>
+      <th contenteditable="true">Absorbance 2 (nm)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td><input></td><td><input></td><td><input></td></tr>
+    <tr><td><input></td><td><input></td><td><input></td></tr>
+    <tr><td><input></td><td><input></td><td><input></td></tr>
+    <tr><td><input></td><td><input></td><td><input></td></tr>
+  </tbody>
+</table>
 
-    <button onclick="generateCurve()">Generate Calibration Curve</button>
+<button onclick="addRow()">Add Concentration</button>
+<button onclick="generateCurve()">Generate Calibration Curve</button>
 
-    <div class="output-box" id="resultBox"></div>
-  </div>
+<div class="output-box" id="resultBox"></div>
+</div>
 
-  <!-- GRAPH -->
-  <div>
-    <canvas id="calibrationChart"></canvas>
-  </div>
+<!-- Graph Section -->
+<div>
+<canvas id="calibrationChart"></canvas>
+</div>
 
 </div>
 
 </main>
 
-<footer>
-  © 2025 Mehul Rohit
-</footer>
+<footer>© 2025 Mehul Rohit</footer>
 
 <script>
 let chart = null;
 
+function addRow() {
+  let tbody = document.querySelector("#dataTable tbody");
+  let cols = document.querySelectorAll("#dataTable thead th").length;
+  let tr = document.createElement("tr");
+  for(let i=0;i<cols;i++){
+    let td = document.createElement("td");
+    let inp = document.createElement("input");
+    td.appendChild(inp);
+    tr.appendChild(td);
+  }
+  tbody.appendChild(tr);
+}
+
 function generateCurve() {
+  let table = document.getElementById("dataTable");
+  let header = table.querySelectorAll("thead th");
+  let rows = table.querySelectorAll("tbody tr");
 
-  let rows = document.querySelectorAll("#dataTable tr");
-  let x = [];
-  let y = [];
+  let datasets = [];
+  let equations = [];
 
-  for (let i = 1; i < rows.length; i++) {
-    let xv = parseFloat(rows[i].cells[0].children[0].value);
-    let yv = parseFloat(rows[i].cells[1].children[0].value);
-
-    if (!isNaN(xv) && !isNaN(yv)) {
-      x.push(xv);
-      y.push(yv);
+  for (let col=1; col<header.length; col++){
+    let x=[], y=[];
+    for(let i=0;i<rows.length;i++){
+      let conc = parseFloat(rows[i].cells[0].children[0].value);
+      let abs = parseFloat(rows[i].cells[col].children[0].value);
+      if(!isNaN(conc) && !isNaN(abs)){
+        x.push(conc);
+        y.push(abs);
+      }
     }
+    if(x.length<2) continue;
+
+    // Linear regression
+    let n = x.length, sumX=0,sumY=0,sumXY=0,sumX2=0;
+    for(let i=0;i<n;i++){
+      sumX+=x[i]; sumY+=y[i]; sumXY+=x[i]*y[i]; sumX2+=x[i]*x[i];
+    }
+    let slope=(n*sumXY - sumX*sumY)/(n*sumX2 - sumX*sumX);
+    let intercept=(sumY - slope*sumX)/n;
+    let yPred = x.map(v=>slope*v + intercept);
+
+    // R²
+    let meanY = sumY/n, ssTot=0, ssRes=0;
+    for(let i=0;i<n;i++){
+      ssTot += Math.pow(y[i]-meanY,2);
+      ssRes += Math.pow(y[i]-yPred[i],2);
+    }
+    let r2 = 1 - (ssRes/ssTot);
+
+    equations.push(`<b>${header[col].innerText}:</b> y=${slope.toFixed(4)}x + ${intercept.toFixed(4)}, R²=${r2.toFixed(4)}`);
+
+    datasets.push({
+      label: header[col].innerText,
+      data: x.map((v,i)=>({x:v, y:y[i]})),
+      borderColor: getRandomColor(),
+      backgroundColor: getRandomColor(),
+      showLine:false
+    });
+
+    // Add regression line
+    datasets.push({
+      label: header[col].innerText + " regression",
+      data: x.map((v,i)=>({x:v, y:yPred[i]})),
+      borderColor: datasets[datasets.length-1].borderColor,
+      backgroundColor: datasets[datasets.length-1].borderColor,
+      type:'line',
+      fill:false
+    });
   }
 
-  if (x.length < 2) {
-    document.getElementById("resultBox").innerHTML =
-      "Please enter at least two valid data points.";
-    return;
-  }
+  document.getElementById("resultBox").innerHTML = equations.join("<br>");
 
-  /* Linear regression */
-  let n = x.length;
-  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
-
-  for (let i = 0; i < n; i++) {
-    sumX += x[i];
-    sumY += y[i];
-    sumXY += x[i] * y[i];
-    sumX2 += x[i] * x[i];
-  }
-
-  let slope = (n * sumXY - sumX * sumY) / (n * sumX2 - sumX * sumX);
-  let intercept = (sumY - slope * sumX) / n;
-
-  let yPred = x.map(v => slope * v + intercept);
-
-  /* R squared */
-  let meanY = sumY / n;
-  let ssTot = 0, ssRes = 0;
-
-  for (let i = 0; i < n; i++) {
-    ssTot += Math.pow(y[i] - meanY, 2);
-    ssRes += Math.pow(y[i] - yPred[i], 2);
-  }
-
-  let r2 = 1 - (ssRes / ssTot);
-
-  document.getElementById("resultBox").innerHTML =
-    `<strong>Regression Equation:</strong> y = ${slope.toFixed(4)}x + ${intercept.toFixed(4)}<br>
-     <strong>R²:</strong> ${r2.toFixed(4)}`;
-
-  if (chart) chart.destroy();
+  if(chart) chart.destroy();
 
   chart = new Chart(document.getElementById("calibrationChart"), {
-    type: 'scatter',
-    data: {
-      datasets: [
-        {
-          label: 'Observed Data',
-          data: x.map((v, i) => ({ x: v, y: y[i] })),
-        },
-        {
-          label: 'Regression Line',
-          type: 'line',
-          data: x.map((v, i) => ({ x: v, y: yPred[i] })),
-          borderWidth: 2,
-          fill: false
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      scales: {
-        x: {
-          title: {
-            display: true,
-            text: 'Concentration (µg/mL)'
-          }
-        },
-        y: {
-          title: {
-            display: true,
-            text: 'Absorbance'
-          }
-        }
+    type:'scatter',
+    data:{datasets:datasets},
+    options:{
+      responsive:true,
+      scales:{
+        x:{title:{display:true,text:'Concentration (µg/mL)'}},
+        y:{title:{display:true,text:'Absorbance (nm)'}}
       }
     }
   });
+}
+
+function getRandomColor() {
+  let letters = '0123456789ABCDEF';
+  let color = '#';
+  for(let i=0;i<6;i++){ color += letters[Math.floor(Math.random()*16)]; }
+  return color;
 }
 </script>
 
